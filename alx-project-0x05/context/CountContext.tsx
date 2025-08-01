@@ -32,4 +32,54 @@ export const useCount = () => {
   }
 
   return context
-}
+}// context/CountContext.tsx
+import React, { createContext, useContext, useReducer, ReactNode } from "react";
+
+type State = {
+  count: number;
+};
+
+type Action = { type: "increment" } | { type: "decrement" };
+
+type CountContextType = {
+  count: number;
+  increment: () => void;
+  decrement: () => void;
+};
+
+const initialState: State = { count: 0 };
+
+const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case "increment":
+      return { count: state.count + 1 };
+    case "decrement":
+      return { count: state.count - 1 };
+    default:
+      return state;
+  }
+};
+
+const CountContext = createContext<CountContextType | undefined>(undefined);
+
+export const CountProvider = ({ children }: { children: ReactNode }) => {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const value: CountContextType = {
+    count: state.count,
+    increment: () => dispatch({ type: "increment" }),
+    decrement: () => dispatch({ type: "decrement" }),
+  };
+
+  return (
+    <CountContext.Provider value={value}>{children}</CountContext.Provider>
+  );
+};
+
+export const useCount = (): CountContextType => {
+  const ctx = useContext(CountContext);
+  if (!ctx) {
+    throw new Error("useCount must be used within CountProvider");
+  }
+  return ctx;
+};
